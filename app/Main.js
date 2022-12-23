@@ -1,5 +1,5 @@
 import React from "react"
-import ReactDOM from "react-dom"
+import { createRoot } from "react-dom/client"
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 
 //Components
@@ -23,7 +23,8 @@ function Main() {
   )
 }
 
-ReactDOM.render(<Main />, document.getElementById("app"))
+const root = createRoot(document.getElementById("app"))
+root.render(<Main />)
 
 if (module.hot) {
   module.hot.accept()
