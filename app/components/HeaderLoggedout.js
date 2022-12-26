@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useState } from "react"
 import Axios from "axios"
 
 function HeaderLoggedout(props) {
@@ -8,12 +8,12 @@ function HeaderLoggedout(props) {
   async function handleSubmit(e) {
     e.preventDefault()
     try {
-      const response = await Axios.post("http://localhost:8080/login", { username: userName, password: userPassword })
+      const response = await Axios.post("/login", { username: userName, password: userPassword })
       if (response.data) {
         localStorage.setItem("appToken", response.data.token)
         localStorage.setItem("appUsername", response.data.username)
         localStorage.setItem("appAvatar", response.data.avatar)
-        props.logIn(true)
+        props.loggedIn(true)
       } else {
         console.log("no data")
       }
