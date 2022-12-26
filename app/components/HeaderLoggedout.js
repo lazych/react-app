@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from "react"
 import Axios from "axios"
 
-function HeaderLoggedout() {
-  const [username, setUsername] = useState()
-  const [password, setPassword] = useState()
+function HeaderLoggedout(props) {
+  const [userName, setName] = useState()
+  const [userPassword, setPassword] = useState()
 
   async function handleSubmit(e) {
     e.preventDefault()
     try {
-      const response = await Axios.post("http://localhost:8080/login", { username, password })
+      const response = await Axios.post("http://localhost:8080/login", { username: userName, password: userPassword })
       if (response.data) {
-        console.log(response.data)
+        localStorage.setItem("appToken", response.data.token)
+        localStorage.setItem("appUsername", response.data.username)
+        localStorage.setItem("appAvatar", response.data.avatar)
+        props.logIn(true)
       } else {
         console.log("no data")
       }
@@ -25,7 +28,7 @@ function HeaderLoggedout() {
         <div className="col-md mr-0 pr-md-0 mb-3 mb-md-0">
           <input
             onChange={(e) => {
-              e.target.value
+              setName(e.target.value)
             }}
             name="username"
             className="form-control form-control-sm input-dark"
