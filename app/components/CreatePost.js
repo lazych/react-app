@@ -1,18 +1,24 @@
 import Axios from "axios"
 import React, { useState } from "react"
 import Page from "./Page"
+import { useNavigate } from "react-router-dom"
 
-function createPost() {
+function createPost(props) {
+  const navigate = useNavigate()
   const [title, setTitle] = useState()
   const [content, setContent] = useState()
 
   async function handleSubmit(e) {
     e.preventDefault()
     try {
-      await Axios.post("/create-post", { title, body: content, token: localStorage.getItem("appToken") })
+      const response = await Axios.post("/create-post", { title, body: content, token: localStorage.getItem("appToken") })
+      // redirect to new post URL
+      navigate(`/post/${response.data}`)
+      // show flash message
+      props.flashFunction("Congrats! your new post was published!")
       console.log("post submitted!")
     } catch (e) {
-      console.log("error")
+      console.log(e)
     }
   }
 
