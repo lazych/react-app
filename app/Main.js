@@ -6,6 +6,7 @@ import Axios from "axios"
 Axios.defaults.baseURL = "http://localhost:8080"
 
 //Components
+import ExampleContext from "./ExampleContext"
 import Footer from "./components/Footer"
 import Header from "./components/Header"
 import Home from "./components/Home"
@@ -25,18 +26,20 @@ function Main() {
   }
 
   return (
-    <BrowserRouter>
-      <Header loggedIn={loggedIn} setLoggedIn={setLoggedIn} />
-      <FlashMessages messages={flashMessages} />
-      <Routes>
-        <Route path="/" element={loggedIn ? <Home /> : <HomeGuest />} />
-        <Route path="/About-us" element={<About />} />
-        <Route path="/Terms" element={<Terms />} />
-        <Route path="/create-post" element={<CreatePost flashFunction={flashFunction} />} />
-        <Route path="/post/:id" element={<ViewSinglePost />} />
-      </Routes>
-      <Footer />
-    </BrowserRouter>
+    <ExampleContext.Provider value={{ flashFunction, setLoggedIn }}>
+      <BrowserRouter>
+        <Header loggedIn={loggedIn} />
+        <FlashMessages messages={flashMessages} />
+        <Routes>
+          <Route path="/" element={loggedIn ? <Home /> : <HomeGuest />} />
+          <Route path="/About-us" element={<About />} />
+          <Route path="/Terms" element={<Terms />} />
+          <Route path="/create-post" element={<CreatePost />} />
+          <Route path="/post/:id" element={<ViewSinglePost />} />
+        </Routes>
+        <Footer />
+      </BrowserRouter>
+    </ExampleContext.Provider>
   )
 }
 

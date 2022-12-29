@@ -1,12 +1,14 @@
 import Axios from "axios"
-import React, { useState } from "react"
+import React, { useState, useContext } from "react"
 import Page from "./Page"
 import { useNavigate } from "react-router-dom"
+import ExampleContext from "../ExampleContext"
 
 function createPost(props) {
   const navigate = useNavigate()
   const [title, setTitle] = useState()
   const [content, setContent] = useState()
+  const { flashFunction } = useContext(ExampleContext)
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -15,7 +17,7 @@ function createPost(props) {
       // redirect to new post URL
       navigate(`/post/${response.data}`)
       // show flash message
-      props.flashFunction("Congrats! your new post was published!")
+      flashFunction("Congrats! your new post was published!")
       console.log("post submitted!")
     } catch (e) {
       console.log(e)
