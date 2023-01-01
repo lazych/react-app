@@ -1,12 +1,12 @@
 import React, { useContext } from "react"
 import { Link } from "react-router-dom"
-import ExampleContext from "../ExampleContext"
+import DispatchContext from "../DispatchContext"
 
-function HeaderLoggedIn(props) {
-  const { setLoggedIn } = useContext(ExampleContext)
+function HeaderLoggedIn() {
+  const appDispatch = useContext(DispatchContext)
 
   function handleLogout() {
-    setLoggedIn(false)
+    appDispatch({ type: "logout" })
     localStorage.removeItem("appToken")
     localStorage.removeItem("appUsername")
     localStorage.removeItem("appAvatar")

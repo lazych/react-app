@@ -1,9 +1,10 @@
 import React, { useContext, useState } from "react"
 import Axios from "axios"
-import ExampleContext from "../ExampleContext"
+import DispatchContext from "../DispatchContext"
 
-function HeaderLoggedout(props) {
-  const { setLoggedIn } = useContext(ExampleContext)
+function HeaderLoggedout() {
+  const appDispatch = useContext(DispatchContext)
+
   const [userName, setName] = useState()
   const [userPassword, setPassword] = useState()
 
@@ -15,7 +16,7 @@ function HeaderLoggedout(props) {
         localStorage.setItem("appToken", response.data.token)
         localStorage.setItem("appUsername", response.data.username)
         localStorage.setItem("appAvatar", response.data.avatar)
-        setLoggedIn(true)
+        appDispatch({ type: "login" })
       } else {
         console.log("no data")
       }
