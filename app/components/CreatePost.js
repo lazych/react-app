@@ -3,8 +3,10 @@ import React, { useState, useContext } from "react"
 import Page from "./Page"
 import { useNavigate } from "react-router-dom"
 import DispatchContext from "../DispatchContext"
+import StateContext from "../StateContext"
 
 function createPost() {
+  const appState = useContext(StateContext)
   const appDispatch = useContext(DispatchContext)
   const navigate = useNavigate()
   const [title, setTitle] = useState()
@@ -13,7 +15,7 @@ function createPost() {
   async function handleSubmit(e) {
     e.preventDefault()
     try {
-      const response = await Axios.post("/create-post", { title, body: content, token: localStorage.getItem("appToken") })
+      const response = await Axios.post("/create-post", { title, body: content, token: appState.user.token })
       // redirect to new post URL
       navigate(`/post/${response.data}`)
       // show flash message
