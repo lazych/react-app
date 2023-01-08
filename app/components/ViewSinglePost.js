@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react"
 import { Link, useParams } from "react-router-dom"
 import ReactTooltip from "react-tooltip"
 import LoadingDotsIcon from "./LoadingDotsIcon"
+import NotFound from "./NotFound"
 import Page from "./Page"
 
 function viewSinglePost() {
@@ -27,6 +28,11 @@ function viewSinglePost() {
       ourReq.cancel()
     }
   }, [])
+
+  //loading is complete and post state is undefined.
+  if (!isLoading && !post) {
+    return <NotFound />
+  }
 
   if (isLoading)
     return (
