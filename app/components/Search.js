@@ -1,3 +1,4 @@
+import Axios from "axios"
 import React, { useContext, useEffect } from "react"
 import { useImmer } from "use-immer"
 import DispatchContext from "../DispatchContext"
@@ -33,13 +34,33 @@ function Search() {
     }
   }, [state.searchTerm])
 
+  // send request to the server
+
+  useEffect(() => {
+    if (state.reqCount) {
+      // const ourReq = Axios.CancelToken.source()
+      const ourReq = Axios.CancelToken.source()
+      async function fetchTerms() {
+        try {
+          const response = await Axios.post("/search", { searchTerm: state.searchTerm }, { cancelToken: ourReq.token })
+          console.log(response.data)
+        } catch (error) {
+          console.log("error happened")
+          console.log(error)
+        }
+      }
+      fetchTerms()
+      return () => {
+        ourReq.cancel()
+      }
+    }
+  }, [state.reqCount])
+
   function searchKeyPressHandler(e) {
     if (e.keyCode == 27) {
       handleCloseButton()
     }
   }
-
-  // send request to the server
 
   function handleInput(e) {
     const value = e.target.value
