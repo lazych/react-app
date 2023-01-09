@@ -1,7 +1,15 @@
 import React, { useContext, useEffect } from "react"
+import { useImmer } from "use-immer"
 import DispatchContext from "../DispatchContext"
 
 function Search() {
+  const [state, setState] = useImmer({
+    searchTerm: "",
+    results: [],
+    show: "neither",
+    reqCount: 0,
+  })
+
   const appDispatch = useContext(DispatchContext)
 
   function handleCloseButton() {
@@ -13,10 +21,31 @@ function Search() {
     return () => document.removeEventListener("keyup", searchKeyPressHandler)
   }, [])
 
+  // increment reqCount
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      setState((draft) => {
+        draft.reqCount++
+      })
+    }, 700)
+    return () => {
+      clearTimeout(delay)
+    }
+  }, [state.searchTerm])
+
   function searchKeyPressHandler(e) {
     if (e.keyCode == 27) {
       handleCloseButton()
     }
+  }
+
+  // send request to the server
+
+  function handleInput(e) {
+    const value = e.target.value
+    setState((draft) => {
+      draft.searchTerm = value
+    })
   }
 
   return (
@@ -26,7 +55,7 @@ function Search() {
           <label htmlFor="live-search-field" className="search-overlay-icon">
             <i className="fas fa-search"></i>
           </label>
-          <input autoFocus type="text" autoComplete="off" id="live-search-field" className="live-search-field" placeholder="What are you interested in?" />
+          <input onChange={handleInput} autoFocus type="text" autoComplete="off" id="live-search-field" className="live-search-field" placeholder="What are you interested in?" />
           <span onClick={handleCloseButton} className="close-live-search">
             <i className="fas fa-times-circle"></i>
           </span>
