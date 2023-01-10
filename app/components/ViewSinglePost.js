@@ -32,7 +32,7 @@ function viewSinglePost() {
     return () => {
       ourReq.cancel()
     }
-  }, [])
+  }, [id])
 
   //loading is complete and post state is undefined.
   if (!isLoading && !post) {
