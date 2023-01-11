@@ -85,7 +85,7 @@ function Main() {
             <Route path="/create-post" element={<CreatePost />} />
             <Route path="/post/:id" element={<ViewSinglePost />} />
             <Route path="/post/:id/edit" element={<EditPost />} />
-            <Route path="/profile/:username" element={<Profile />} />
+            <Route path="/profile/:username/*" element={<Profile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <CSSTransition timeout={330} in={state.isSearchOpen} classNames="search-overlay" unmountOnExit>
