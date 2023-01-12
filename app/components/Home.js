@@ -18,13 +18,11 @@ function Home() {
     async function fetchPosts() {
       try {
         const response = await Axios.post("/getHomeFeed", { token: appState.user.token }, { cancelToken: ourReq.token })
-        console.log(response.data)
         setState((draft) => {
           draft.isLoading = false
           draft.feed = response.data
         })
       } catch (error) {
-        console.log(error)
         console.log(`there's an error fetching data`)
       }
     }
@@ -40,7 +38,7 @@ function Home() {
 
   return (
     <Page title="Your feed">
-      {state.feed.length && (
+      {Boolean(state.feed.length) && (
         <>
           <h2 className="text-center mb-4">The latest from those you follow</h2>
           <div className="list-group">
@@ -50,7 +48,7 @@ function Home() {
           </div>
         </>
       )}
-      {state.feed.length == 0 && (
+      {Boolean(state.feed.length) == 0 && (
         <>
           <h2 className="text-center">
             Hello <strong>{appState.user.username}</strong>, your feed is empty.

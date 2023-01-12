@@ -23,10 +23,10 @@ function HeaderLoggedIn() {
         <i className="fas fa-search"></i>
       </a>
       <ReactTooltip id="search" place="bottom" className="custom-tooltip" />
-      <span data-for="messages" data-tip="Messages" className="mr-2 header-chat-icon text-white">
+      <span onClick={() => appDispatch({ type: "toggleChat" })} data-for="messages" data-tip="Messages" className={"mr-2 header-chat-icon " + (appState.unreadChatCount > 1 ? "text-danger" : "text-white")}>
         <i className="fas fa-comment"></i>
-        <span className="chat-count-badge text-white"> </span>
-      </span>
+        {appState.unreadChatCount ? <span className="chat-count-badge text-white">{appState.unreadChatCount < 10 ? appState.unreadChatCount : "+9"}</span> : ""}
+      </span>{" "}
       <ReactTooltip id="messages" place="bottom" className="custom-tooltip" />
       <Link data-for="profile" data-tip="Profile" to={`/profile/${appState.user.username}`} className="mr-2">
         <img className="small-header-avatar" src={appState.user.avatar} />
