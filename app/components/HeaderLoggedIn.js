@@ -10,6 +10,7 @@ function HeaderLoggedIn() {
 
   function handleLogout() {
     appDispatch({ type: "logout" })
+    appDispatch({ type: "flashMessage", value: "You've succefully logged out!" })
   }
 
   function handleSearchIcon(e) {

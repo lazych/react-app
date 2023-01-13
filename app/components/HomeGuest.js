@@ -1,21 +1,193 @@
-import React, { useState } from "react"
+import React, { useContext, useEffect, useState } from "react"
 import Page from "./Page"
+import { useImmerReducer } from "use-immer"
+import { CSSTransition } from "react-transition-group"
 import Axios from "axios"
+import DispatchContext from "../DispatchContext"
 
 function HomeGuest() {
-  const [userName, setName] = useState()
-  const [userEmail, setUserEmail] = useState()
-  const [userPassword, setPassword] = useState()
+  const appDispatch = useContext(DispatchContext)
 
-  async function handleSubmit(e) {
-    e.preventDefault()
-    try {
-      await Axios.post("/register", { username: userName, email: userEmail, password: userPassword })
-      console.log("User was successfully created.")
-    } catch (e) {
-      console.log(e.response.data)
+  const initialState = {
+    username: { value: "", hasErrors: false, message: "", isUnique: true, checkCount: 0 },
+    email: { value: "", hasErrors: false, message: "", isUnique: true, checkCount: 0 },
+    password: { value: "", hasErrors: false, message: "" },
+    submitCount: 0,
+  }
+
+  function ourReducer(draft, action) {
+    switch (action.type) {
+      case "userNameNow":
+        draft.username.hasErrors = false
+        draft.username.value = action.value
+        if (draft.username.value.length > 30) {
+          draft.username.hasErrors = true
+          draft.username.message = "username cannot be longer than 30 chars!"
+        }
+        if (draft.username.value && !/^([a-zA-Z0-9]+)$/.test(draft.username.value)) {
+          draft.username.hasErrors = true
+          draft.username.message = "username can only contain chars and numbers"
+        }
+        return
+      case "userNameAfterDelay":
+        if (draft.username.value.length < 3) {
+          draft.username.hasErrors = true
+          draft.username.message = "username must be longer than 3 chars!"
+        }
+        if (!draft.username.hasErrors && !action.noReq) {
+          draft.username.checkCount++
+        }
+        return
+      case "userNameUniqueResults":
+        draft.username.hasErrors = true
+        draft.username.isUnique = false
+        draft.username.message = "this username already taken"
+        return
+      case "emailNow":
+        draft.email.hasErrors = false
+        draft.email.value = action.value
+        return
+      case "emailAfterDelay":
+        if (!/^\S+@\S+$/.test(draft.email.value)) {
+          draft.email.hasErrors = true
+          draft.email.message = "the email you entred is incorrect!"
+        }
+        if (!draft.email.hasErrors && !action.noReq) {
+          draft.email.checkCount++
+        }
+        return
+      case "emailUniqueResults":
+        draft.email.hasErrors = true
+        draft.email.isUnique = false
+        draft.email.message = "you are already registred! try to log in"
+        return
+      case "passwordNow":
+        draft.password.hasErrors = false
+        draft.password.value = action.value
+        if (draft.password.value.length > 50) {
+          draft.password.hasErrors = true
+          draft.password.message = "password connot exceed 50 chars"
+        }
+        return
+      case "passwordAfterDelay":
+        if (draft.password.value.length < 10) {
+          draft.password.hasErrors = true
+          draft.password.message = "password must be at least 10 chars!"
+        }
+        return
+      case "submitForm":
+        if (!draft.username.hasErrors && draft.username.isUnique && !draft.email.hasErrors && draft.email.isUnique && !draft.password.hasErrors) {
+          draft.submitCount++
+        }
+        return
     }
   }
+
+  const [state, dispatch] = useImmerReducer(ourReducer, initialState)
+
+  //check username after delay
+  useEffect(() => {
+    if (state.username.value) {
+      const delay = setTimeout(() => {
+        dispatch({ type: "userNameAfterDelay" })
+      }, 700)
+      return () => {
+        clearTimeout(delay)
+      }
+    }
+  }, [state.username.value])
+
+  //check email after delay
+  useEffect(() => {
+    if (state.email.value) {
+      const delay = setTimeout(() => {
+        dispatch({ type: "emailAfterDelay" })
+      }, 700)
+      return () => {
+        clearTimeout(delay)
+      }
+    }
+  }, [state.email.value])
+
+  //check password after delay
+  useEffect(() => {
+    if (state.password.value) {
+      const delay = setTimeout(() => {
+        dispatch({ type: "passwordAfterDelay" })
+      }, 700)
+      return () => {
+        clearTimeout(delay)
+      }
+    }
+  }, [state.password.value])
+
+  //check if username unique
+  useEffect(() => {
+    if (state.username.checkCount) {
+      const ourRequest = Axios.CancelToken.source()
+      async function fetchResults() {
+        try {
+          const response = await Axios.post("/doesUsernameExist", { username: state.username.value }, { cancelToken: ourRequest.token })
+          // console.log(response.data)
+          if (response.data) {
+            dispatch({ type: "userNameUniqueResults" })
+          }
+        } catch (e) {
+          console.log("There was a problem or the request was cancelled.")
+        }
+      }
+      fetchResults()
+      return () => ourRequest.cancel()
+    }
+  }, [state.username.checkCount])
+
+  //check if email unique
+  useEffect(() => {
+    if (state.email.checkCount) {
+      const ourRequest = Axios.CancelToken.source()
+      async function fetchResults() {
+        try {
+          const response = await Axios.post("/doesEmailExist", { email: state.email.value }, { cancelToken: ourRequest.token })
+          if (response.data) {
+            dispatch({ type: "emailUniqueResults" })
+          }
+        } catch (e) {
+          console.log("There was a problem or the request was cancelled.")
+        }
+      }
+      fetchResults()
+      return () => ourRequest.cancel()
+    }
+  }, [state.email.checkCount])
+
+  function handleSubmit(e) {
+    e.preventDefault()
+    dispatch({ type: "userNameNow", value: state.username.value })
+    dispatch({ type: "userNameAfterDelay", value: state.username.value, noReq: true })
+    dispatch({ type: "emailNow", value: state.email.value })
+    dispatch({ type: "emailAfterDelay", value: state.email.value, noReq: true })
+    dispatch({ type: "passwordNow", value: state.password.value })
+    dispatch({ type: "passwordAfterDelay", value: state.password.value })
+    dispatch({ type: "submitForm" })
+  }
+
+  //submit the form
+  useEffect(() => {
+    if (state.submitCount) {
+      const ourRequest = Axios.CancelToken.source()
+      async function fetchResults() {
+        try {
+          const response = await Axios.post("/register", { username: state.username.value, email: state.email.value, password: state.password.value }, { cancelToken: ourRequest.token })
+          appDispatch({ type: "login", data: response.data })
+          appDispatch({ type: "flashMessage", value: "welcome to your new account!" })
+        } catch (e) {
+          console.log("There was a problem or the request was cancelled.")
+        }
+      }
+      fetchResults()
+      return () => ourRequest.cancel()
+    }
+  }, [state.submitCount])
 
   return (
     <Page title="Home" wide={true}>
@@ -30,19 +202,28 @@ function HomeGuest() {
               <label htmlFor="username-register" className="text-muted mb-1">
                 <small>Username</small>
               </label>
-              <input onChange={(e) => setName(e.target.value)} id="username-register" name="username" className="form-control" type="text" placeholder="Pick a username" autoComplete="off" />
+              <input onChange={(e) => dispatch({ type: "userNameNow", value: e.target.value })} id="username-register" name="username" className="form-control" type="text" placeholder="Pick a username" autoComplete="off" />
+              <CSSTransition in={state.username.hasErrors} timeout={330} classNames="liveValidateMessage" unmountOnExit>
+                <div className="alert alert-danger small liveValidateMessage">{state.username.message}</div>
+              </CSSTransition>
             </div>
             <div className="form-group">
               <label htmlFor="email-register" className="text-muted mb-1">
                 <small>Email</small>
               </label>
-              <input onChange={(e) => setUserEmail(e.target.value)} id="email-register" name="email" className="form-control" type="text" placeholder="you@example.com" autoComplete="off" />
+              <input onChange={(e) => dispatch({ type: "emailNow", value: e.target.value })} id="email-register" name="email" className="form-control" type="text" placeholder="you@example.com" autoComplete="off" />
+              <CSSTransition in={state.email.hasErrors} timeout={330} classNames="liveValidateMessage" unmountOnExit>
+                <div className="alert alert-danger small liveValidateMessage">{state.email.message}</div>
+              </CSSTransition>
             </div>
             <div className="form-group">
               <label htmlFor="password-register" className="text-muted mb-1">
                 <small>Password</small>
               </label>
-              <input onChange={(e) => setPassword(e.target.value)} id="password-register" name="password" className="form-control" type="password" placeholder="Create a password" />
+              <input onChange={(e) => dispatch({ type: "passwordNow", value: e.target.value })} id="password-register" name="password" className="form-control" type="password" placeholder="Create a password" />
+              <CSSTransition in={state.password.hasErrors} timeout={330} classNames="liveValidateMessage" unmountOnExit>
+                <div className="alert alert-danger small liveValidateMessage">{state.password.message}</div>
+              </CSSTransition>
             </div>
             <button type="submit" className="py-3 mt-4 btn btn-lg btn-success btn-block">
               Sign up for ComplexApp
