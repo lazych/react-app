@@ -4,9 +4,9 @@ import io from "socket.io-client"
 import { useImmer } from "use-immer"
 import DispatchContext from "../DispatchContext"
 import StateContext from "../StateContext"
-const socket = io("http://localhost:8080")
 
 function Chat() {
+  const socket = useRef(null)
   const chatField = useRef(null)
   const chatLog = useRef(null)
   const appState = useContext(StateContext)
@@ -31,11 +31,15 @@ function Chat() {
   }, [appState.isChatOpen])
 
   useEffect(() => {
-    socket.on("chatFromServer", (messageData) => {
+    //establish socket connection
+    socket.current = io(process.env.BACKENDURL || "https://backendapiformyreactapp.herokuapp.com")
+    //recieve chat from server
+    socket.current.on("chatFromServer", (messageData) => {
       setState((draft) => {
         draft.chatMessages.push(messageData)
       })
     })
+    return () => socket.current.disconnect()
   }, [])
 
   function handleInputChange(e) {
@@ -48,7 +52,7 @@ function Chat() {
   function handleSubmit(e) {
     e.preventDefault()
     // send message to chat server
-    socket.emit("chatFromBrowser", { message: state.fieldValue, token: appState.user.token })
+    socket.current.emit("chatFromBrowser", { message: state.fieldValue, token: appState.user.token })
     setState((draft) => {
       //add message to state collection of messges
       draft.chatMessages.push({ message: draft.fieldValue, username: appState.user.username, avatar: appState.user.avatar })
